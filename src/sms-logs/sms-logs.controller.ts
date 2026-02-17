@@ -13,7 +13,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiQuery,
-  ApiHeader,
+  ApiSecurity,
 } from '@nestjs/swagger';
 import { SmsLogsService } from './sms-logs.service';
 import {
@@ -24,11 +24,7 @@ import { SmsLog } from './entities/sms-log.entity';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
 
 @ApiTags('sms-logs')
-@ApiHeader({
-  name: 'x-api-key',
-  description: 'API key for authentication',
-  required: true,
-})
+@ApiSecurity('x-api-key')
 @UseGuards(ApiKeyGuard)
 @Controller('sms-logs')
 export class SmsLogsController {
@@ -70,34 +66,5 @@ export class SmsLogsController {
   })
   findAll(@Query('userId') userId?: string) {
     return this.smsLogsService.findAll(userId);
-  }
-
-  @Get(':userId/:id')
-  @ApiOperation({ summary: 'Get a single SMS log by user ID and device ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return the log.',
-    type: SmsLog,
-  })
-  @ApiResponse({ status: 404, description: 'Log not found.' })
-  findOne(@Param('userId') userId: string, @Param('id') id: number) {
-    return this.smsLogsService.findOne(userId, id);
-  }
-
-  @Get('user/:userId')
-  @ApiOperation({ summary: 'Get all SMS logs for a specific user' })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    type: Number,
-    description: 'Limit the number of results',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Return filtered logs.',
-    type: [SmsLog],
-  })
-  findByUser(@Param('userId') userId: string, @Query('limit') limit?: number) {
-    return this.smsLogsService.findByUser(userId, limit);
   }
 }

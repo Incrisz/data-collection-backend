@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { CallLog } from './entities/call-log.entity';
 import {
   CreateCallLogDto,
@@ -24,14 +24,25 @@ export class CallLogsService {
     return this.callLogRepository.save(callLog);
   }
 
-  async findAllCallLogs(userId?: string): Promise<CallLog[]> {
+  async findAllCallLogs(
+    userId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<CallLog[]> {
+    const where: any = {};
     if (userId) {
-      return this.callLogRepository.find({
-        where: { userId },
-        order: { timestamp: 'DESC' },
-      });
+      where.userId = userId;
     }
+    if (startDate && endDate) {
+      where.timestamp = Between(startDate, endDate);
+    } else if (startDate) {
+      where.timestamp = Between(startDate, new Date());
+    } else if (endDate) {
+      where.timestamp = Between(new Date(0), endDate);
+    }
+
     return this.callLogRepository.find({
+      where,
       order: { timestamp: 'DESC' },
     });
   }

@@ -13,7 +13,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiQuery,
-  ApiHeader,
+  ApiSecurity,
 } from '@nestjs/swagger';
 import { LocationsService } from './locations.service';
 import {
@@ -24,11 +24,7 @@ import { Location } from './entities/location.entity';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
 
 @ApiTags('locations')
-@ApiHeader({
-  name: 'x-api-key',
-  description: 'API key for authentication',
-  required: true,
-})
+@ApiSecurity('x-api-key')
 @UseGuards(ApiKeyGuard)
 @Controller('locations')
 export class LocationsController {
@@ -70,57 +66,5 @@ export class LocationsController {
   })
   findAll(@Query('userId') userId?: string) {
     return this.locationsService.findAll(userId);
-  }
-
-  @Get(':userId/:id')
-  @ApiOperation({
-    summary: 'Get a single location log by user ID and device ID',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Return the location.',
-    type: Location,
-  })
-  @ApiResponse({ status: 404, description: 'Location not found.' })
-  findOne(@Param('userId') userId: string, @Param('id') id: number) {
-    return this.locationsService.findOne(userId, id);
-  }
-
-  @Get('user/:userId')
-  @ApiOperation({ summary: 'Get all location logs for a specific user' })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    type: Number,
-    description: 'Limit the number of results',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Return filtered locations.',
-    type: [Location],
-  })
-  findByUser(@Param('userId') userId: string, @Query('limit') limit?: number) {
-    return this.locationsService.findByUser(userId, limit);
-  }
-
-  @Get('user/:userId/range')
-  @ApiOperation({ summary: 'Get location logs for a user within a date range' })
-  @ApiQuery({ name: 'startDate', type: String, description: 'ISO date string' })
-  @ApiQuery({ name: 'endDate', type: String, description: 'ISO date string' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return locations within range.',
-    type: [Location],
-  })
-  findByUserAndDateRange(
-    @Param('userId') userId: string,
-    @Query('startDate') startDate: string,
-    @Query('endDate') endDate: string,
-  ) {
-    return this.locationsService.findByUserAndDateRange(
-      userId,
-      new Date(startDate),
-      new Date(endDate),
-    );
   }
 }

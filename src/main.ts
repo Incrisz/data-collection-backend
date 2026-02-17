@@ -20,14 +20,20 @@ async function bootstrap() {
 
   // Swagger Configuration
   const config = new DocumentBuilder()
-    .setTitle('Uniti Tracking API')
+    .setTitle('Data Collection API')
     .setDescription(
       'Backend service for collecting and managing user tracking data from the Uniti Android app.',
     )
     .setVersion('1.0')
-    .addTag('sms-transactions', 'SMS transaction parsing & storage')
-    .addTag('locations', 'Location tracking')
-    .addTag('phone-usage', 'Call & SMS metadata')
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'x-api-key',
+        in: 'header',
+        description: 'API key for authentication',
+      },
+      'x-api-key',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

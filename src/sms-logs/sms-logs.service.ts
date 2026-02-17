@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { SmsLog } from './entities/sms-log.entity';
 import {
   CreateSmsLogDto,
@@ -37,14 +37,25 @@ export class SmsLogsService {
     return [];
   }
 
-  async findAll(userId?: string): Promise<SmsLog[]> {
+  async findAll(
+    userId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<SmsLog[]> {
+    const where: any = {};
     if (userId) {
-      return this.smsLogRepository.find({
-        where: { userId },
-        order: { timestamp: 'DESC' },
-      });
+      where.userId = userId;
     }
+    if (startDate && endDate) {
+      where.timestamp = Between(startDate, endDate);
+    } else if (startDate) {
+      where.timestamp = Between(startDate, new Date());
+    } else if (endDate) {
+      where.timestamp = Between(new Date(0), endDate);
+    }
+
     return this.smsLogRepository.find({
+      where,
       order: { timestamp: 'DESC' },
     });
   }
