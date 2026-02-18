@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { CallLog } from './entities/call-log.entity';
-import {
-  CreateCallLogDto,
-  BatchCreateCallLogDto,
-} from './dto/create-call-log.dto';
+import { CreateCallLogDto } from './dto/create-call-log.dto';
 
 @Injectable()
 export class CallLogsService {
@@ -15,30 +12,30 @@ export class CallLogsService {
   ) {}
 
   // Call Log methods
-  async createCallLog(createCallLogDto: CreateCallLogDto): Promise<CallLog> {
-    const { timestamp, ...rest } = createCallLogDto;
-    const callLog = this.callLogRepository.create({
-      ...rest,
-      timestamp: new Date(timestamp),
+  async createCallLog(
+    createCallLogDtos: CreateCallLogDto[],
+  ): Promise<CallLog[]> {
+    const callLogs = createCallLogDtos.map((dto) => {
+      const { timestamp, ...rest } = dto;
+      return this.callLogRepository.create({
+        ...rest,
+        timestamp: new Date(timestamp),
+      });
     });
-    return this.callLogRepository.save(callLog);
+    return this.callLogRepository.save(callLogs);
   }
 
-  async findAllCallLogs(
-    userId?: string,
-    startDate?: Date,
-    endDate?: Date,
-  ): Promise<CallLog[]> {
+  async findAllCallLogs(userId?: string, date?: Date): Promise<CallLog[]> {
     const where: any = {};
     if (userId) {
       where.userId = userId;
     }
-    if (startDate && endDate) {
-      where.timestamp = Between(startDate, endDate);
-    } else if (startDate) {
-      where.timestamp = Between(startDate, new Date());
-    } else if (endDate) {
-      where.timestamp = Between(new Date(0), endDate);
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      where.timestamp = Between(startOfDay, endOfDay);
     }
 
     return this.callLogRepository.find({
@@ -57,20 +54,5 @@ export class CallLogsService {
 
   async findOne(userId: string, id: number): Promise<CallLog | null> {
     return this.callLogRepository.findOne({ where: { userId, id } });
-  }
-
-  // Batch upload method
-  async batchCreate(batchCreateDto: BatchCreateCallLogDto): Promise<CallLog[]> {
-    if (batchCreateDto.callLogs && batchCreateDto.callLogs.length > 0) {
-      const callLogEntities = batchCreateDto.callLogs.map((dto) => {
-        const { timestamp, ...rest } = dto;
-        return this.callLogRepository.create({
-          ...rest,
-          timestamp: new Date(timestamp),
-        });
-      });
-      return this.callLogRepository.save(callLogEntities);
-    }
-    return [];
   }
 }

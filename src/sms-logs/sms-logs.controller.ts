@@ -7,6 +7,7 @@ import {
   Query,
   ValidationPipe,
   UseGuards,
+  ParseArrayPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,12 +15,10 @@ import {
   ApiResponse,
   ApiQuery,
   ApiSecurity,
+  ApiBody,
 } from '@nestjs/swagger';
 import { SmsLogsService } from './sms-logs.service';
-import {
-  CreateSmsLogDto,
-  BatchCreateSmsLogDto,
-} from './dto/create-sms-log.dto';
+import { CreateSmsLogDto } from './dto/create-sms-log.dto';
 import { SmsLog } from './entities/sms-log.entity';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
 
@@ -31,25 +30,59 @@ export class SmsLogsController {
   constructor(private readonly smsLogsService: SmsLogsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a single SMS log' })
-  @ApiResponse({
-    status: 201,
-    description: 'The log has been successfully created.',
-    type: SmsLog,
+  @ApiOperation({ summary: 'Create one or more SMS logs' })
+  @ApiBody({
+    type: [CreateSmsLogDto],
+    examples: {
+      single: {
+        summary: 'A single SMS log',
+        value: [
+          {
+            userId: 'user_123',
+            id: 1,
+            direction: 'sent',
+            synced: 1,
+            length: 6,
+            contact_hash: '385201775',
+            timestamp: '2026-02-08T19:41:00.000Z',
+          },
+        ],
+      },
+      multiple: {
+        summary: 'Multiple SMS logs',
+        value: [
+          {
+            userId: 'user_123',
+            id: 1,
+            direction: 'sent',
+            synced: 1,
+            length: 6,
+            contact_hash: '385201775',
+            timestamp: '2026-02-08T19:41:00.000Z',
+          },
+          {
+            userId: 'user_123',
+            id: 2,
+            direction: 'received',
+            synced: 1,
+            length: 12,
+            contact_hash: '999888777',
+            timestamp: '2026-02-08T20:00:00.000Z',
+          },
+        ],
+      },
+    },
   })
-  create(@Body(ValidationPipe) createSmsLogDto: CreateSmsLogDto) {
-    return this.smsLogsService.create(createSmsLogDto);
-  }
-
-  @Post('batch')
-  @ApiOperation({ summary: 'Batch upload multiple SMS logs' })
   @ApiResponse({
     status: 201,
     description: 'The logs have been successfully created.',
     type: [SmsLog],
   })
-  batchCreate(@Body(ValidationPipe) batchCreateDto: BatchCreateSmsLogDto) {
-    return this.smsLogsService.batchCreate(batchCreateDto);
+  create(
+    @Body(new ParseArrayPipe({ items: CreateSmsLogDto }))
+    createSmsLogDtos: CreateSmsLogDto[],
+  ) {
+    return this.smsLogsService.create(createSmsLogDtos);
   }
 
   @Get()
@@ -59,12 +92,21 @@ export class SmsLogsController {
     required: false,
     description: 'Filter logs by userId',
   })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    type: String,
+    description: 'ISO date string (YYYY-MM-DD)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Return all logs.',
     type: [SmsLog],
   })
-  findAll(@Query('userId') userId?: string) {
-    return this.smsLogsService.findAll(userId);
+  findAll(@Query('userId') userId?: string, @Query('date') date?: string) {
+    return this.smsLogsService.findAll(
+      userId,
+      date ? new Date(date) : undefined,
+    );
   }
 }

@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { Location } from './entities/location.entity';
-import {
-  CreateLocationDto,
-  BatchCreateLocationDto,
-} from './dto/create-location.dto';
+import { CreateLocationDto } from './dto/create-location.dto';
 
 @Injectable()
 export class LocationsService {
@@ -14,19 +11,8 @@ export class LocationsService {
     private locationRepository: Repository<Location>,
   ) {}
 
-  async create(createLocationDto: CreateLocationDto): Promise<Location> {
-    const { timestamp, ...rest } = createLocationDto;
-    const location = this.locationRepository.create({
-      ...rest,
-      timestamp: new Date(timestamp),
-    });
-    return this.locationRepository.save(location);
-  }
-
-  async batchCreate(
-    batchCreateDto: BatchCreateLocationDto,
-  ): Promise<Location[]> {
-    const locations = batchCreateDto.locations.map((dto) => {
+  async create(createLocationDtos: CreateLocationDto[]): Promise<Location[]> {
+    const locations = createLocationDtos.map((dto) => {
       const { timestamp, ...rest } = dto;
       return this.locationRepository.create({
         ...rest,
@@ -36,21 +22,17 @@ export class LocationsService {
     return this.locationRepository.save(locations);
   }
 
-  async findAll(
-    userId?: string,
-    startDate?: Date,
-    endDate?: Date,
-  ): Promise<Location[]> {
+  async findAll(userId?: string, date?: Date): Promise<Location[]> {
     const where: any = {};
     if (userId) {
       where.userId = userId;
     }
-    if (startDate && endDate) {
-      where.timestamp = Between(startDate, endDate);
-    } else if (startDate) {
-      where.timestamp = Between(startDate, new Date());
-    } else if (endDate) {
-      where.timestamp = Between(new Date(0), endDate);
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      where.timestamp = Between(startOfDay, endOfDay);
     }
 
     return this.locationRepository.find({

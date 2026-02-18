@@ -7,6 +7,7 @@ import {
   Param,
   ValidationPipe,
   UseGuards,
+  ParseArrayPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,12 +15,10 @@ import {
   ApiResponse,
   ApiQuery,
   ApiSecurity,
+  ApiBody,
 } from '@nestjs/swagger';
 import { CallLogsService } from './call-logs.service';
-import {
-  CreateCallLogDto,
-  BatchCreateCallLogDto,
-} from './dto/create-call-log.dto';
+import { CreateCallLogDto } from './dto/create-call-log.dto';
 import { CallLog } from './entities/call-log.entity';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
 
@@ -32,14 +31,62 @@ export class CallLogsController {
 
   // Call Log endpoints
   @Post()
-  @ApiOperation({ summary: 'Create a single call log' })
+  @ApiOperation({ summary: 'Create one or more call logs' })
+  @ApiBody({
+    type: [CreateCallLogDto],
+    examples: {
+      single: {
+        summary: 'A single call log',
+        value: [
+          {
+            userId: 'user_123',
+            id: 1,
+            timestamp: '2026-01-14T11:28:10.219Z',
+            direction: 'INCOMING',
+            status: 'INCOMING',
+            duration: 23,
+            contact_hash: '464472654',
+            synced: 1,
+          },
+        ],
+      },
+      multiple: {
+        summary: 'Multiple call logs',
+        value: [
+          {
+            userId: 'user_123',
+            id: 1,
+            timestamp: '2026-01-14T11:28:10.219Z',
+            direction: 'INCOMING',
+            status: 'INCOMING',
+            duration: 23,
+            contact_hash: '464472654',
+            synced: 1,
+          },
+          {
+            userId: 'user_123',
+            id: 2,
+            timestamp: '2026-01-14T11:30:10.219Z',
+            direction: 'OUTGOING',
+            status: 'OUTGOING',
+            duration: 45,
+            contact_hash: '987654321',
+            synced: 1,
+          },
+        ],
+      },
+    },
+  })
   @ApiResponse({
     status: 201,
-    description: 'The call log has been successfully created.',
-    type: CallLog,
+    description: 'The call logs have been successfully created.',
+    type: [CallLog],
   })
-  createCallLog(@Body(ValidationPipe) createCallLogDto: CreateCallLogDto) {
-    return this.callLogsService.createCallLog(createCallLogDto);
+  createCallLog(
+    @Body(new ParseArrayPipe({ items: CreateCallLogDto }))
+    createCallLogDtos: CreateCallLogDto[],
+  ) {
+    return this.callLogsService.createCallLog(createCallLogDtos);
   }
 
   @Get()
@@ -49,23 +96,24 @@ export class CallLogsController {
     required: false,
     description: 'Filter call logs by userId',
   })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    type: String,
+    description: 'ISO date string (YYYY-MM-DD)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Return all call logs.',
     type: [CallLog],
   })
-  findAllCallLogs(@Query('userId') userId?: string) {
-    return this.callLogsService.findAllCallLogs(userId);
-  }
-
-  // Batch upload endpoint
-  @Post('batch')
-  @ApiOperation({ summary: 'Batch upload multiple call logs' })
-  @ApiResponse({
-    status: 201,
-    description: 'The logs have been successfully created.',
-  })
-  batchCreate(@Body(ValidationPipe) batchCreateDto: BatchCreateCallLogDto) {
-    return this.callLogsService.batchCreate(batchCreateDto);
+  findAllCallLogs(
+    @Query('userId') userId?: string,
+    @Query('date') date?: string,
+  ) {
+    return this.callLogsService.findAllCallLogs(
+      userId,
+      date ? new Date(date) : undefined,
+    );
   }
 }

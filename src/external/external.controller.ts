@@ -29,27 +29,19 @@ export class ExternalTrackingController {
   @ApiOperation({ summary: 'Publicly fetch all location logs' })
   @ApiQuery({ name: 'userId', required: false })
   @ApiQuery({
-    name: 'startDate',
+    name: 'date',
     required: false,
     type: String,
-    description: 'ISO date string',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: String,
-    description: 'ISO date string',
+    description: 'ISO date string (YYYY-MM-DD)',
   })
   @ApiResponse({ status: 200, type: [Location] })
   findAllLocations(
     @Query('userId') userId?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query('date') date?: string,
   ) {
     return this.locationsService.findAll(
       userId,
-      startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined,
+      date ? new Date(date) : undefined,
     );
   }
 
@@ -57,27 +49,19 @@ export class ExternalTrackingController {
   @ApiOperation({ summary: 'Publicly fetch all call logs' })
   @ApiQuery({ name: 'userId', required: false })
   @ApiQuery({
-    name: 'startDate',
+    name: 'date',
     required: false,
     type: String,
-    description: 'ISO date string',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: String,
-    description: 'ISO date string',
+    description: 'ISO date string (YYYY-MM-DD)',
   })
   @ApiResponse({ status: 200, type: [CallLog] })
   findAllCallLogs(
     @Query('userId') userId?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query('date') date?: string,
   ) {
     return this.callLogsService.findAllCallLogs(
       userId,
-      startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined,
+      date ? new Date(date) : undefined,
     );
   }
 
@@ -85,27 +69,19 @@ export class ExternalTrackingController {
   @ApiOperation({ summary: 'Publicly fetch all SMS logs' })
   @ApiQuery({ name: 'userId', required: false })
   @ApiQuery({
-    name: 'startDate',
+    name: 'date',
     required: false,
     type: String,
-    description: 'ISO date string',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: String,
-    description: 'ISO date string',
+    description: 'ISO date string (YYYY-MM-DD)',
   })
   @ApiResponse({ status: 200, type: [SmsLog] })
   findAllSmsLogs(
     @Query('userId') userId?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query('date') date?: string,
   ) {
     return this.smsLogsService.findAll(
       userId,
-      startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined,
+      date ? new Date(date) : undefined,
     );
   }
 }

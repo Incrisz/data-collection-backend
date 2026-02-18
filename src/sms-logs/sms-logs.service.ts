@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { SmsLog } from './entities/sms-log.entity';
-import {
-  CreateSmsLogDto,
-  BatchCreateSmsLogDto,
-} from './dto/create-sms-log.dto';
+import { CreateSmsLogDto } from './dto/create-sms-log.dto';
 
 @Injectable()
 export class SmsLogsService {
@@ -14,44 +11,28 @@ export class SmsLogsService {
     private smsLogRepository: Repository<SmsLog>,
   ) {}
 
-  async create(createSmsLogDto: CreateSmsLogDto): Promise<SmsLog> {
-    const { timestamp, ...rest } = createSmsLogDto;
-    const smsLog = this.smsLogRepository.create({
-      ...rest,
-      timestamp: new Date(timestamp),
-    });
-    return this.smsLogRepository.save(smsLog);
-  }
-
-  async batchCreate(batchCreateDto: BatchCreateSmsLogDto): Promise<SmsLog[]> {
-    if (batchCreateDto.smsLogs && batchCreateDto.smsLogs.length > 0) {
-      const smsLogEntities = batchCreateDto.smsLogs.map((dto) => {
-        const { timestamp, ...rest } = dto;
-        return this.smsLogRepository.create({
-          ...rest,
-          timestamp: new Date(timestamp),
-        });
+  async create(createSmsLogDtos: CreateSmsLogDto[]): Promise<SmsLog[]> {
+    const smsLogs = createSmsLogDtos.map((dto) => {
+      const { timestamp, ...rest } = dto;
+      return this.smsLogRepository.create({
+        ...rest,
+        timestamp: new Date(timestamp),
       });
-      return this.smsLogRepository.save(smsLogEntities);
-    }
-    return [];
+    });
+    return this.smsLogRepository.save(smsLogs);
   }
 
-  async findAll(
-    userId?: string,
-    startDate?: Date,
-    endDate?: Date,
-  ): Promise<SmsLog[]> {
+  async findAll(userId?: string, date?: Date): Promise<SmsLog[]> {
     const where: any = {};
     if (userId) {
       where.userId = userId;
     }
-    if (startDate && endDate) {
-      where.timestamp = Between(startDate, endDate);
-    } else if (startDate) {
-      where.timestamp = Between(startDate, new Date());
-    } else if (endDate) {
-      where.timestamp = Between(new Date(0), endDate);
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      where.timestamp = Between(startOfDay, endOfDay);
     }
 
     return this.smsLogRepository.find({
