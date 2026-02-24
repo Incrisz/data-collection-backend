@@ -9,7 +9,9 @@ describe('SmsTransactionsController', () => {
       controllers: [SmsTransactionsController],
     }).compile();
 
-    controller = module.get<SmsTransactionsController>(SmsTransactionsController);
+    controller = module.get<SmsTransactionsController>(
+      SmsTransactionsController,
+    );
   });
 
   it('should be defined', () => {

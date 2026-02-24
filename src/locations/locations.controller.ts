@@ -96,20 +96,31 @@ export class LocationsController {
     description: 'Filter locations by userId',
   })
   @ApiQuery({
-    name: 'date',
+    name: 'startDate',
     required: false,
     type: String,
-    description: 'ISO date string (YYYY-MM-DD)',
+    description: 'Start date (YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'End date (YYYY-MM-DD)',
   })
   @ApiResponse({
     status: 200,
     description: 'Return all locations.',
     type: [Location],
   })
-  findAll(@Query('userId') userId?: string, @Query('date') date?: string) {
+  findAll(
+    @Query('userId') userId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
     return this.locationsService.findAll(
       userId,
-      date ? new Date(date) : undefined,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
     );
   }
 }

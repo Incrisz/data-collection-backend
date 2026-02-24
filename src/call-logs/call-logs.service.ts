@@ -25,16 +25,22 @@ export class CallLogsService {
     return this.callLogRepository.save(callLogs);
   }
 
-  async findAllCallLogs(userId?: string, date?: Date): Promise<CallLog[]> {
+  async findAllCallLogs(
+    userId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<CallLog[]> {
     const where: any = {};
     if (userId) {
       where.userId = userId;
     }
-    if (date) {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+    if (startDate || endDate) {
+      const startOfDay = startDate ? new Date(startDate) : new Date(0);
+      if (startDate) startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = endDate ? new Date(endDate) : new Date();
+      if (endDate) endOfDay.setHours(23, 59, 59, 999);
+
       where.timestamp = Between(startOfDay, endOfDay);
     }
 

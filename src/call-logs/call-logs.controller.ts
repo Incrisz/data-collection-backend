@@ -97,10 +97,16 @@ export class CallLogsController {
     description: 'Filter call logs by userId',
   })
   @ApiQuery({
-    name: 'date',
+    name: 'startDate',
     required: false,
     type: String,
-    description: 'ISO date string (YYYY-MM-DD)',
+    description: 'Start date (YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'End date (YYYY-MM-DD)',
   })
   @ApiResponse({
     status: 200,
@@ -109,11 +115,13 @@ export class CallLogsController {
   })
   findAllCallLogs(
     @Query('userId') userId?: string,
-    @Query('date') date?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
     return this.callLogsService.findAllCallLogs(
       userId,
-      date ? new Date(date) : undefined,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
     );
   }
 }

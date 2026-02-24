@@ -5,6 +5,7 @@ import {
   ApiResponse,
   ApiQuery,
   ApiSecurity,
+  ApiHeader,
 } from '@nestjs/swagger';
 import { LocationsService } from '../locations/locations.service';
 import { CallLogsService } from '../call-logs/call-logs.service';
@@ -27,61 +28,100 @@ export class ExternalTrackingController {
 
   @Get('locations')
   @ApiOperation({ summary: 'Publicly fetch all location logs' })
+  @ApiHeader({
+    name: 'x-api-key',
+    required: true,
+    description: 'External API Key for authentication',
+  })
   @ApiQuery({ name: 'userId', required: false })
   @ApiQuery({
-    name: 'date',
+    name: 'startDate',
     required: false,
     type: String,
-    description: 'ISO date string (YYYY-MM-DD)',
+    description: 'Start date (YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'End date (YYYY-MM-DD)',
   })
   @ApiResponse({ status: 200, type: [Location] })
   findAllLocations(
     @Query('userId') userId?: string,
-    @Query('date') date?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
     return this.locationsService.findAll(
       userId,
-      date ? new Date(date) : undefined,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
     );
   }
 
   @Get('call-logs')
   @ApiOperation({ summary: 'Publicly fetch all call logs' })
+  @ApiHeader({
+    name: 'x-api-key',
+    required: true,
+    description: 'External API Key for authentication',
+  })
   @ApiQuery({ name: 'userId', required: false })
   @ApiQuery({
-    name: 'date',
+    name: 'startDate',
     required: false,
     type: String,
-    description: 'ISO date string (YYYY-MM-DD)',
+    description: 'Start date (YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'End date (YYYY-MM-DD)',
   })
   @ApiResponse({ status: 200, type: [CallLog] })
   findAllCallLogs(
     @Query('userId') userId?: string,
-    @Query('date') date?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
     return this.callLogsService.findAllCallLogs(
       userId,
-      date ? new Date(date) : undefined,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
     );
   }
 
   @Get('sms-logs')
   @ApiOperation({ summary: 'Publicly fetch all SMS logs' })
+  @ApiHeader({
+    name: 'x-api-key',
+    required: true,
+    description: 'External API Key for authentication',
+  })
   @ApiQuery({ name: 'userId', required: false })
   @ApiQuery({
-    name: 'date',
+    name: 'startDate',
     required: false,
     type: String,
-    description: 'ISO date string (YYYY-MM-DD)',
+    description: 'Start date (YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'End date (YYYY-MM-DD)',
   })
   @ApiResponse({ status: 200, type: [SmsLog] })
   findAllSmsLogs(
     @Query('userId') userId?: string,
-    @Query('date') date?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
     return this.smsLogsService.findAll(
       userId,
-      date ? new Date(date) : undefined,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
     );
   }
 }
